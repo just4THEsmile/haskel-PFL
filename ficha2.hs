@@ -81,5 +81,23 @@ aprox n = 4 * sum [((-1) ** fromIntegral i) / (2 * fromIntegral i + 1) | i <- [0
 aprox':: Int -> Double
 aprox' n = sqrt (12*sum[((-1)^ fromIntegral i) / ((fromIntegral i + 1)^2) |i<-[0..n]])
 
-dotprod:: [Float]->[Float]->[]
-dotprod a b = zip a b 
+dotprod:: [Float]->[Float]-> Float
+dotprod x y = sum (zipWith (*) x y)
+
+divprop:: Integer -> [Integer]
+divprop 1 = []
+divprop num = [i|i <- [1..num `div` 2], num `mod` i == 0]
+
+perfect:: Integer -> [Integer]
+perfect num = [i|i<-[1..num],sum (divprop i) == i]
+
+pitagoricos:: Integer -> [(Integer,Integer,Integer)]
+pitagoricos num = [(x,y,z)|x<-[1..num],y<-[1..num],z<-[1..num],(x^2 + y^2) == z^2]
+
+primo:: Integer -> Bool
+primo n
+    | length (divprop n) == 1 = True
+    | otherwise = False
+
+mersennes :: [Integer]
+mersennes = [mersenne | n <- [1..30], let mersenne = 2^n - 1, primo mersenne]
