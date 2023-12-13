@@ -20,7 +20,7 @@ myreplicate 0 _ = []
 myreplicate n x = x : myreplicate (n-1) x 
 
 --o
-myIndex :: [a] -> Int -> a
+myIndex:: [a] -> Int -> a
 myIndex [] _ = error "Index out of Bounds"
 myIndex (x:_) 0 = x
 myIndex (_:xs) n
@@ -32,3 +32,54 @@ myelem _ [] = False
 myelem n (x:xs)
     | n == x = True
     | n /= x = myelem n xs
+
+myintersperse:: [a] -> [a] -> [a]
+myintersperse _ [] =  []
+myintersperse a [x] = [x]
+myintersperse a (x:xs) = [x] ++ a ++ (myintersperse a xs)
+
+mdc:: Int -> Int -> Int
+mdc a b 
+    | b == 0 = a
+    | b /= 0 = mdc b (a `mod` b)
+
+myinsert:: Ord a=> a -> [a] -> [a]
+myinsert num [] = [num]
+myinsert num (x:xs)
+    | num <= x = num : x  : xs
+    | otherwise =  x : myinsert num xs
+
+myisort:: Ord a => [a] -> [a]
+myisort [] = []
+myisort (x:xs) = myinsert x (myisort xs)
+
+
+myminimum:: Ord a => [a] -> a
+myminimum [] = error "Empty List"
+myminimum [x] = x
+myminimum (x:xs)
+    | x <= head xs = myminimum (x:tail xs)
+    | otherwise = myminimum xs
+
+
+mydelete:: Eq a => a->[a]->[a]
+mydelete del [] = []
+mydelete del (x:xs)
+    | del == x = xs
+    | otherwise = x : mydelete del xs
+
+myssort:: Ord a => [a] -> [a]
+myssort [] = []
+myssort (x:xs) = (min : myssort (mydelete  min (x:xs)))
+    where min = myminimum (x:xs) 
+
+expressao = [x^2| x<-[1..100]]
+
+aprox:: Int -> Double
+aprox n = 4 * sum [((-1) ** fromIntegral i) / (2 * fromIntegral i + 1) | i <- [0..n]]
+
+aprox':: Int -> Double
+aprox' n = sqrt (12*sum[((-1)^ fromIntegral i) / ((fromIntegral i + 1)^2) |i<-[0..n]])
+
+dotprod:: [Float]->[Float]->[]
+dotprod a b = zip a b 
