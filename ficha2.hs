@@ -1,3 +1,6 @@
+import Data.Char
+import Data.List
+
 myand::[Bool] -> Bool
 myand [] = True
 myand(x:xs) = x && myand xs
@@ -101,3 +104,73 @@ primo n
 
 mersennes :: [Integer]
 mersennes = [mersenne | n <- [1..30], let mersenne = 2^n - 1, primo mersenne]
+
+binom :: Integer -> Integer -> Integer
+binom n k = result
+    where result = product[1..n]`div`(product[1..k]*product[1..(n-k)])
+
+binom2 :: Integer -> Integer -> Integer
+binom2 n k = result
+    where result = product [n - k + 1 .. n] `div` product [1 .. k]
+
+pascal:: Integer -> [[Integer]]
+pascal n = [[binom i k | k <- [0..i]] | i <- [0..n]]
+
+
+cifrar :: Int -> String -> String
+cifrar shift msg = map (shiftChar shift) msg
+
+shiftChar :: Int -> Char -> Char
+shiftChar shift c
+    | isLower c = chr $ (ord c - ord 'a' + shift) `mod` 26 + ord 'a'
+    | isUpper c = chr $ (ord c - ord 'A' + shift) `mod` 26 + ord 'A'
+    | otherwise = c
+
+forte:: String -> Bool
+forte password = length password >=8 &&
+                any isUpper password &&
+                any isLower password &&
+                any isDigit password 
+
+
+mindiv :: Int -> Int
+mindiv n = head [i | i <- [2..(floor . sqrt $ fromIntegral n)], n `mod` i == 0]
+
+nub1 :: Eq a => [a] -> [a]
+nub1 [] = []
+nub1 (x:xs) = x : nub1 [y | y <- xs, y /= x]
+
+transpose1 :: [[a]] -> [[a]]
+transpose1 [] = []
+transpose1 ([]:xss) = transpose1 xss
+transpose1 ((x:xs):xss) = (x : [h | (h:_) <- xss]) : transpose1 (xs : [t | (_:t) <- xss])
+
+algarismos :: Int -> [Int]
+algarismos n = reverse (algarismosRev n)
+
+algarismosRev :: Int -> [Int]
+algarismosRev 0 = []
+algarismosRev n = n `mod` 10 : algarismosRev (n `div` 10)
+
+toBits :: Int -> [Int]
+toBits 0 = []
+toBits n = toBits (n `div` 2) ++ [n `mod` 2]
+
+
+fromBits :: [Int] -> Int
+fromBits = foldl' (\acc x -> acc * 2 + x) 0
+
+
+merge :: Ord a => [a] -> [a] -> [a]
+merge xs [] = xs
+merge [] ys = ys
+merge (x:xs) (y:ys)
+    | x <= y    = x : merge xs (y:ys)
+    | otherwise = y : merge (x:xs) ys
+
+
+msort :: Ord a => [a] -> [a]
+msort [] = []
+msort [x] = [x]
+msort xs = let (ys, zs) = splitAt (length xs `div` 2) xs
+           in merge (msort ys) (msort zs)
