@@ -1,5 +1,7 @@
 module Stack (Stack, push, pop, top,  empty, isEmpty) where
-data Stack a = Stk [a]
+
+
+data Stack a = Stk [a] deriving Show
 
 push :: a -> Stack a -> Stack a
 push x (Stk xs) = Stk (x:xs)
@@ -20,22 +22,43 @@ isEmpty (Stk [])= True
 isEmpty (Stk _) = False
 
 
-isOpen c = c `elem` "([{" 
-isClose c = c `elem` ")]}"
+
+
+openBrackets :: Char -> Bool
+openBrackets char = char `elem` "([{"
+
+closeBrackets :: Char -> Bool
+closeBrackets char = char `elem` ")}]"
+
+matches :: Char -> Char -> Bool
 matches '(' ')' = True
 matches '[' ']' = True
 matches '{' '}' = True
 matches _ _ = False
 
-parent :: String -> Bool
-parent str = parentAux str empty
+processChar:: Stack Char -> Char -> Stack Char
+processChar stack char
+    | openBrackets char = push char stack
+    | closeBrackets char =
+        if not (isEmpty stack) && matches (top stack) char
+            then pop stack
+            else push char stack 
+    | otherwise = stack
 
-parentAux :: [Char] -> Stack -> Bool
-parentAux [] stk = null stk 
-parentAux (c:cs) stk
-    | isOpen c = parentAux cs (c:stk)
-    | isClose c =
-        if null stk || not(matches(top stk) c)
-            then False
-            else parentAux cs (pop stk)
-    | otherwise = parentAux cs stk
+
+parent:: String -> Bool
+parent = isEmpty . foldl processChar empty
+
+
+calc:: Stack Float -> String -> Stack Float
+calc(Stk(x:y:z)) "+" = Stk ((x+y):z)
+calc(Stk(x:y:z)) "-" = Stk ((x-y):z)
+calc(Stk(x:y:z)) "*" = Stk ((x*y):z)
+calc(Stk(x:y:z)) "/" = Stk ((x/y):z)
+calc stack numStr = push ( read numStr) stack
+
+calcular:: String -> Float
+calcular = top . foldl calc empty . words
+
+
+
