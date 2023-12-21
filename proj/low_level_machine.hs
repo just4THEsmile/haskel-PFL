@@ -51,6 +51,20 @@ exec (Sub:code, stack, state) = (code, push (Number (n1 - n2)) (pop (pop stack))
       Number n -> n
       _ -> error "Run-time error"
 
+--Equal Instruction
+exec (Equ:code, stack, state) = 
+  case (top stack, top(pop stack)) of
+    (Number n1, Number n2) -> (code, push (if n1 == n2 then TT else FF) (pop (pop stack)), state)
+    (TT, TT) -> (code, push TT (pop (pop stack)), state)
+    (FF, FF) -> (code, push TT (pop (pop stack)), state)
+    (_,_)-> error "Run-time error"
+
+--Lower or Equal Instruction
+exec(Le:code, stack, state) =
+  case (top stack, top(pop stack)) of
+    (Number n1, Number n2) -> (code, push (if n1 <= n2 then TT else FF) (pop (pop stack)), state)
+    (_,_)-> error "Run-time error"
+
 convertStr :: DataType -> String
 convertStr TT = "True"
 convertStr FF = "False"
