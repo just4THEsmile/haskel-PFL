@@ -13,13 +13,20 @@ data Expr = AddExpr Expr Expr
     | Num Int
     deriving (Eq, Show)
 
+
+
+--Find Value of a Variable
+stateLookup:: State -> String -> DataType
+stateLookup [] v = error ("Variable " ++ v ++ " not found") 
+stateLookup ((var, value):xs) v
+  | var == v = value
+  | otherwise = stateLookup xs v
+
+
 exec :: (Code, Stack DataType, State) -> (Code, Stack DataType, State)
 
 --Empty
 exec ([], stack, state) = ([], stack, state)
-
---Push n Instruction
-exec (Push n:code, stack, state) = (code, push (Number n) stack, state)
 
 -- Add Instruction
 exec (Add:code, stack, state) = (code, push (Number (n1 + n2)) (pop (pop stack)), state)
@@ -64,6 +71,64 @@ exec(Le:code, stack, state) =
   case (top stack, top(pop stack)) of
     (Number n1, Number n2) -> (code, push (if n1 <= n2 then TT else FF) (pop (pop stack)), state)
     (_,_)-> error "Run-time error"
+
+--Push n Instruction
+exec (Push n:code, stack, state) = (code, push (Number n) stack, state)
+
+--Fetch x Instruction
+exec(Fetch x:code, stack, state) = (code, push (stateLookup state x) stack, state)
+
+
+--Store x Instruction
+exec (Store x:code, stack, state) = (code, pop stack, storeVal state (x, top stack))
+ where
+    storeVal [] (x, value) = [(x, value)]
+    storeVal ((var, value):xs) (x, value2)
+      | var == x = (x, value2):xs
+      | otherwise = (var, value):storeVal xs (x, value2)
+
+--Negation Instruction
+exec(Neg:code, stack, state) = 
+  case top stack of
+      TT -> (code, push FF (pop stack), state)
+      FF -> (code, push TT (pop stack), state)
+      _  -> error "Run-time error"
+
+--Tru Instruction
+exec (Tru:code, stack, state) = (code, push TT stack, state)
+
+--Fals Instruction
+exec (Fals:code, stack, state) = (code, push FF stack, state)
+
+--And Instruction  //////Dont forget error
+exec (And:code, stack, state) 
+  | isEmpty stack || isEmpty (pop stack) = error "Run-time error"
+  | otherwise = 
+      case (top stack, top (pop stack)) of
+        (TT, TT) -> (code, push TT (pop (pop stack)), state)
+        (FF, FF) -> (code, push FF (pop (pop stack)), state)
+        (TT, FF) -> (code, push FF (pop (pop stack)), state)
+        (FF, TT) -> (code, push FF (pop (pop stack)), state)
+        (_,_) -> error "Run-time error"
+
+--Branch Instruction
+exec (Branch code1 code2:code, stack, state) = 
+  case top stack of
+    TT -> (code1 ++ code, pop stack, state)
+    FF -> (code2 ++ code, pop stack, state)
+    _ -> error "Run-time error"
+
+--Loop Instruction
+exec (Loop code1 code2:code, stack, state) = 
+  case top stack of
+    TT -> (code1 ++ [Loop code1 code2] ++ code, pop stack, state)
+    FF -> (code2 ++ code, pop stack, state)
+    _ -> error "Run-time error"
+
+--Noop Instruction
+exec (Noop:code, stack, state) = (code, stack, state)
+
+
 
 convertStr :: DataType -> String
 convertStr TT = "True"
