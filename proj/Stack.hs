@@ -1,4 +1,4 @@
-module Stack (Stack, push, pop, top,  emptyStack, isEmpty) where
+module Stack (Stack, push, pop, top,  createEmptyStack, isEmpty) where
 
 
 data Stack a = Stk [a] deriving Show
@@ -14,8 +14,8 @@ top :: Stack a -> a
 top (Stk (x:_)) = x
 top _ = error "Stack.top: empty stack"
 
-emptyStack :: Stack a
-emptyStack = Stk []
+createEmptyStack :: Stack a
+createEmptyStack = Stk []
 
 isEmpty :: Stack a -> Bool
 isEmpty (Stk [])= True

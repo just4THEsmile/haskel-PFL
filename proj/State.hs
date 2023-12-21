@@ -1,7 +1,9 @@
-module State (State, emptyState) where
+module State (State,DataType(..) ,createEmptyState) where
 
-data State = State [(String, Integer)]
+data DataType= Number Integer | TT | FF 
+    deriving (Eq, Show)
 
-emptyState :: State
-emptyState = State []
+type State = [(String, DataType)]
 
+createEmptyState :: State
+createEmptyState = []
