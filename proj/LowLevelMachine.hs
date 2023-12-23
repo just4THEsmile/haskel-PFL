@@ -1,3 +1,4 @@
+module LowLevelMachine where
 -- Part 1
 import Stack
 import State
@@ -7,11 +8,6 @@ data Inst =
   Branch Code Code | Loop Code Code
   deriving Show
 type Code = [Inst]
-
-data Expr = AddExpr Expr Expr
-    | MultExpr Expr Expr
-    | Num Int
-    deriving (Eq, Show)
 
 -- Execute Instructions
 exec :: (Code, Stack DataType, State) -> (Code, Stack DataType, State)
@@ -167,10 +163,10 @@ testAssembler :: Code -> (String, String)
 testAssembler code = (stack2Str stack, state2Str state)
   where (_,stack,state) = run(code, createEmptyStack, createEmptyState)
 
-main :: IO()
-main = do
+mainAssembler :: IO()
+mainAssembler = do
     --testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
-    --print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
+    print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
 
     -- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
     --print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
