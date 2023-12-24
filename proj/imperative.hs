@@ -82,7 +82,7 @@ compile :: [Stm] -> Code
 compile [] = []
 compile (s:ss) = compStm s ++ compile ss
 
-
+{--
 aexp :: Parser Aexp
 aexp = buildExpressionParser aOperators aTerm
 
@@ -136,12 +136,16 @@ stm = do reserved "if"
          semi
          s2 <- stm
          return $ Main.Seq s1 s2
+--}
 
+-- Parse a string into a list of statements
 parseString :: String -> [Stm]
-parseString str =
+parseString str = undefined
+  {--
   case parse (whiteSpace >> many1 stm) "" str of
     Left e  -> error "Parsing error"
     Right r -> r
+    --}
 
 -- To help you test your parser
 testParser :: String -> (String, String)
