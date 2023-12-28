@@ -58,7 +58,7 @@ compA (Num n) = [Push n]
 compA (Var x) = [Fetch x]
 compA (Main.Add a1 a2) = compA a1 ++ compA a2 ++ [LLM.Add] 
 compA (Main.Mult a1 a2) = compA a1 ++ compA a2 ++ [LLM.Mult] 
-compA (Main.Sub a1 a2) = compA a1 ++ compA a2 ++ [LLM.Sub]  
+compA (Main.Sub a1 a2) = compA a2 ++ compA a1 ++ [LLM.Sub]  
 
 
 -- Compile Boolean Expressions
@@ -82,70 +82,40 @@ compile :: [Stm] -> Code
 compile [] = []
 compile (s:ss) = compStm s ++ compile ss
 
-{--
-aexp :: Parser Aexp
-aexp = buildExpressionParser aOperators aTerm
-
+-- Precedence and associativity of arithmetic operators
 aOperators = [ [Infix (reservedOp "*" >> return Main.Mult) AssocLeft]
              , [Infix (reservedOp "+" >> return Main.Add) AssocLeft]
-              , [Infix (reservedOp "-" >> return Main.Sub) AssocLeft]
+             , [Infix (reservedOp "-" >> return Main.Sub) AssocLeft]
              ]
 
+-- Term parser for arithmetic expressions
 aTerm = parens aexp
      <|> liftM Var identifier
      <|> liftM Num integer
 
-bexp :: Parser Bexp
-bexp = buildExpressionParser bOperators bTerm
-
-bOperators = [ [Prefix (reservedOp "not" >> return Main.Neg)]
-             , [Infix (reservedOp "and" >> return Main.And) AssocLeft]
-             ]
-
-bTerm = parens bexp
-     <|> (reserved "True" >> return Main.TT)
-     <|> (reserved "False" >> return Main.FF)
-     <|> (do a1 <- aexp
-             reservedOp "=="
-             a2 <- aexp
-             return $ Main.Equ a1 a2)
-     <|> (do a1 <- aexp
-             reservedOp "<="
-             a2 <- aexp
-             return $ Main.Le a1 a2)
+-- Arithmetic expression parser
+aexp = buildExpressionParser aOperators aTerm
 
 
+-- Parser for a list of statements
+stms :: Parser [Stm]
+stms = many stm
+
+-- Statement parser
 stm :: Parser Stm
-stm = do reserved "if"
-         b <- bexp
-         reserved "then"
-         s1 <- stm
-         reserved "else"
-         s2 <- stm
-         return $ Main.If b s1 s2
-  <|> do reserved "while"
-         b <- bexp
-         reserved "do"
-         s <- stm
-         return $ Main.While b s
-  <|> do var <- identifier
-         reservedOp ":="
-         a <- aexp
-         return $ Main.Assign var a
-  <|> do s1 <- stm
-         semi
-         s2 <- stm
-         return $ Main.Seq s1 s2
---}
+stm = do
+    var <- identifier
+    reservedOp ":="
+    expr <- aexp
+    semi
+    return $ Assign var expr
 
 -- Parse a string into a list of statements
 parseString :: String -> [Stm]
-parseString str = undefined
-  {--
-  case parse (whiteSpace >> many1 stm) "" str of
-    Left e  -> error "Parsing error"
-    Right r -> r
-    --}
+parseString str =
+    case parse stms "" str of
+        Left e  -> error $ show e
+        Right r -> r
 
 -- To help you test your parser
 testParser :: String -> (String, String)
@@ -154,9 +124,8 @@ testParser programCode = (stack2Str stack, state2Str state)
 
 main :: IO()
 main = do
-    let testCase= "x := 1;"
-    print $ testParser testCase
-
+    let testCases = ["x := (1+2)*3;"]
+    mapM_ (print . testParser) testCases
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
