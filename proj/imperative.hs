@@ -78,7 +78,7 @@ compB (Main.Neg b) = compB b ++ [LLM.Neg]
 compB (Main.And b1 b2) = compB b1 ++ compB b2 ++ [LLM.And]
 compB (Main.Equ a1 a2) = compA a1 ++ compA a2 ++ [LLM.Equ]
 compB (Main.EquB b1 b2) = compB b1 ++ compB b2 ++ [LLM.Equ]
-compB (Main.Le a1 a2) = compA a1 ++ compA a2 ++ [LLM.Le]
+compB (Main.Le a1 a2) = compA a2 ++ compA a1 ++ [LLM.Le]
 
 -- Compile Statements
 compStm :: Stm -> Code
@@ -110,9 +110,27 @@ aTerm = parens aexp
 -- Arithmetic expression parser
 aexp = buildExpressionParser aOperators aTerm
 
+
+-- Parser for Less than or Equal to
+comparison :: Parser Bexp
+comparison = do
+  a1 <- aexp
+  op <- reservedOp "<=" >> return Main.Le
+  a2 <- aexp
+  return (op a1 a2)
+
+-- Parser for == (equality)
+equality :: Parser Bexp
+equality = do
+  a1 <- aexp
+  op <- reservedOp "==" >> return Main.Equ
+  a2 <- aexp
+  return (op a1 a2)
+
 -- Precedence and associativity of boolean operators
 bOperators = [ 
               [Prefix (reservedOp "not" >> return Main.Neg)],
+              [Infix (reservedOp "=" >> return Main.EquB) AssocLeft],
               [Infix (reservedOp "and" >> return Main.And) AssocLeft]
              ]
 
@@ -121,6 +139,9 @@ bTerm = parens bexp
        <|> (reserved "True" >> return Main.TT)
        <|> (reserved "False" >> return Main.FF)
        <|> liftM Bvar identifier
+       <|> try comparison
+       <|> equality
+       
      
 -- Boolean expression parser
 bexp = buildExpressionParser bOperators bTerm
@@ -165,13 +186,7 @@ testParser programCode = (stack2Str stack, state2Str state)
 
 main :: IO()
 main = do
-       let testCases = [
-                     "x:=5;x:= x - 1; y := x * x; z := x + y;",
-                     "x := 5; x := x - 1;",
-                     "not True"
-                     ]
-       mapM_ (print . testParser) testCases
-       print $ testParser "x:=True; y:= x and True;"
+       print $ testParser "x := not True and 2 <= 5 = 3 == 4;"
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")

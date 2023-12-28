@@ -2,6 +2,7 @@ module LowLevelMachine where
 -- Part 1
 import Stack
 import State
+import Debug.Trace
 -- Do not modify our definition of Inst and Code
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
@@ -51,6 +52,8 @@ exec (Equ:code, stack, state) =
     (Number n1, Number n2) -> (code, push (if n1 == n2 then TT else FF) (pop (pop stack)), state)
     (TT, TT) -> (code, push TT (pop (pop stack)), state)
     (FF, FF) -> (code, push TT (pop (pop stack)), state)
+    (TT,FF) -> (code, push FF (pop (pop stack)), state)
+    (FF,TT) -> (code, push FF (pop (pop stack)), state)
     (_,_)-> error "Run-time error"
 
 --Lower or Equal Instruction
