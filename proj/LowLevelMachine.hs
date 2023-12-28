@@ -166,10 +166,10 @@ testAssembler code = (stack2Str stack, state2Str state)
 mainAssembler :: IO()
 mainAssembler = do
     --testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
-    print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
+    --print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
 
     -- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
-    --print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
+    print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
 
     -- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
     --print $ testAssembler [Fals,Store "var",Fetch "var"]
