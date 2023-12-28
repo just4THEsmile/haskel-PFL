@@ -57,8 +57,8 @@ data Bexp = TT
 data Stm = Assign String Aexp
             | AssignB String Bexp
             | Seq Stm Stm
-            | If Bexp Stm Stm
-            | While Bexp Stm
+            | If Bexp [Stm] [Stm]
+            | While Bexp [Stm]
             deriving (Eq, Show)
 
 -- Compile Arithmetic Expressions
@@ -85,8 +85,9 @@ compStm :: Stm -> Code
 compStm (Assign x a) = compA a ++ [LLM.Store x]
 compStm (AssignB x b) = compB b ++ [LLM.Store x]
 compStm (Seq s1 s2) = compStm s1 ++ compStm s2
-compStm (If b s1 s2) = compB b ++ [LLM.Branch (compStm s1) (compStm s2)]
-compStm (While b s) = [LLM.Loop (compB b) (compStm s)]
+compStm (If b s1 s2) = compB b ++ [LLM.Branch (compile  s1) (compile s2)]
+compStm (While b s) =  [LLM.Loop (compB b) (compile s)]
+
 
 -- Compile Programs
 compile :: [Stm] -> Code
@@ -136,11 +137,11 @@ bOperators = [
 
 -- Term parser for boolean expressions
 bTerm = parens bexp
+       <|> equality
        <|> (reserved "True" >> return Main.TT)
        <|> (reserved "False" >> return Main.FF)
        <|> liftM Bvar identifier
        <|> try comparison
-       <|> equality
        
      
 -- Boolean expression parser
@@ -152,7 +153,7 @@ stms = many stm
 
 -- Statement parser
 stm :: Parser Stm
-stm = try stmA <|> try stmB
+stm = try stmA <|> try stmB <|> try stmIf <|> try stmWhile
 
 -- Statement parser for arithmetic expressions
 stmA :: Parser Stm
@@ -172,10 +173,36 @@ stmB = do
     semi
     return $ AssignB var expr
 
+thenstm :: Parser [Stm]
+thenstm = parens (many stm) <|> liftM return stm
+
+elsestm :: Parser [Stm]
+elsestm = (parens (many stm) <* semi) <|> liftM return stm
+
+-- Statement parser for if statements
+stmIf :: Parser Stm
+stmIf = do
+    reserved "if"
+    cond <- bexp
+    reserved "then"
+    stm1 <- thenstm
+    reserved "else"
+    stm2 <- elsestm
+    return $ If cond (stm1) (stm2)
+
+-- Statement parser for while loops
+stmWhile :: Parser Stm
+stmWhile = do
+    reserved "while"
+    cond <- bexp
+    reserved "do"
+    stm1 <- elsestm
+    return $ While cond stm1
+
 -- Parse a string into a list of statements
 parseString :: String -> [Stm]
 parseString str =
-    case parse stms "" str of
+    case parse (stms <* eof) "" str of
         Left e  -> error $ show e
         Right r -> r
 
@@ -189,9 +216,14 @@ main = do
        print $ testParser "x := not True and 2 <= 5 = 3 == 4;"
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
+-- testParser "x := 0 - 2;" == ("","x=-2")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
--- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1")
+-- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;);" == ("","x=1")
 -- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2")
 -- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4")
+-- testParser "x := 44; if x <= 43 then x := 1; else (x := 33; x := x+1;); y := x*2;" == ("","x=34,y=68")
+-- testParser "x := 42; if x <= 43 then (x := 33; x := x+1;) else x := 1;" == ("","x=34")
+-- testParser "if (1 == 0+1 = 2+1 == 3) then x := 1; else x := 2;" == ("","x=1")
+-- testParser "if (1 == 0+1 = (2+1 == 4)) then x := 1; else x := 2;" == ("","x=2")
 -- testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);" == ("","x=2,y=-10,z=6")
 -- testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);" == ("","fact=3628800,i=1")

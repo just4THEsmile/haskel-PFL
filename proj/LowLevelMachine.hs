@@ -2,7 +2,6 @@ module LowLevelMachine where
 -- Part 1
 import Stack
 import State
-import Debug.Trace
 -- Do not modify our definition of Inst and Code
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
@@ -52,8 +51,6 @@ exec (Equ:code, stack, state) =
     (Number n1, Number n2) -> (code, push (if n1 == n2 then TT else FF) (pop (pop stack)), state)
     (TT, TT) -> (code, push TT (pop (pop stack)), state)
     (FF, FF) -> (code, push TT (pop (pop stack)), state)
-    (TT,FF) -> (code, push FF (pop (pop stack)), state)
-    (FF,TT) -> (code, push FF (pop (pop stack)), state)
     (_,_)-> error "Run-time error"
 
 --Lower or Equal Instruction
@@ -113,11 +110,8 @@ exec (Branch code1 code2:code, stack, state) =
     _ -> error "Run-time error"
 
 --Loop Instruction
-exec (Loop code1 code2:code, stack, state) = 
-  case top stack of
-    TT -> (code1 ++ [Loop code1 code2] ++ code, pop stack, state)
-    FF -> (code2 ++ code, pop stack, state)
-    _ -> error "Run-time error"
+exec (Loop cond code:rest, stack, state) = 
+  exec (cond ++ [Branch (code ++ [Loop cond code]) [Noop]] ++ rest, stack, state)
 
 --Noop Instruction
 exec (Noop:code, stack, state) = (code, stack, state)
@@ -169,10 +163,10 @@ testAssembler code = (stack2Str stack, state2Str state)
 mainAssembler :: IO()
 mainAssembler = do
     --testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
-    --print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
+    print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
 
     -- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
-    print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
+    --print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
 
     -- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
     --print $ testAssembler [Fals,Store "var",Fetch "var"]
