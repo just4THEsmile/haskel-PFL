@@ -51,6 +51,8 @@ exec (Equ:code, stack, state) =
     (Number n1, Number n2) -> (code, push (if n1 == n2 then TT else FF) (pop (pop stack)), state)
     (TT, TT) -> (code, push TT (pop (pop stack)), state)
     (FF, FF) -> (code, push TT (pop (pop stack)), state)
+    (TT, FF) -> (code, push FF (pop (pop stack)), state)
+    (FF, TT) -> (code, push FF (pop (pop stack)), state)
     (_,_)-> error "Run-time error"
 
 --Lower or Equal Instruction
@@ -166,28 +168,28 @@ mainAssembler = do
     print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult]
 
     -- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
-    --print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
+    print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"]
 
     -- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
-    --print $ testAssembler [Fals,Store "var",Fetch "var"]
+    print $ testAssembler [Fals,Store "var",Fetch "var"]
 
     -- testAssembler [Push (-20),Tru,Fals] == ("False,True,-20","")
-    -- print $ testAssembler [Push (-20),Tru,Fals]
+    print $ testAssembler [Push (-20),Tru,Fals]
 
     -- testAssembler [Push (-20),Tru,Tru,Neg] == ("False,True,-20","")
-    -- print $ testAssembler [Push (-20),Tru,Tru,Neg]
+    print $ testAssembler [Push (-20),Tru,Tru,Neg]
 
     -- testAssembler [Push (-20),Tru,Tru,Neg,Equ] == ("False,-20","")
-    -- print $ testAssembler [Push (-20),Tru,Tru,Neg,Equ]
+    print $ testAssembler [Push (-20),Tru,Tru,Neg,Equ]
 
     -- testAssembler [Push (-20),Push (-21), Le] == ("True","")
-    -- print $ testAssembler [Push (-20),Push (-21), Le]
+    print $ testAssembler [Push (-20),Push (-21), Le]
 
     -- testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"] == ("","x=4")
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"]
+    print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"]
 
     -- testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]] == ("","fact=3628800,i=1")
-    -- print $ testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]]
+    print $ testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]]
 
     -- If you test:
     -- testAssembler [Push 1,Push 2,And]

@@ -45,7 +45,6 @@ data Aexp = Num Integer
 -- Bexp: Boolean Expressions
 data Bexp = TT
             | FF
-            | Bvar String
             | Neg Bexp
             | And Bexp Bexp
             | Equ Aexp Aexp
@@ -73,7 +72,6 @@ compA (Main.Sub a1 a2) = compA a2 ++ compA a1 ++ [LLM.Sub]
 compB :: Bexp -> Code
 compB Main.TT = [LLM.Tru]
 compB Main.FF = [LLM.Fals]
-compB (Main.Bvar x) = [Fetch x]
 compB (Main.Neg b) = compB b ++ [LLM.Neg]
 compB (Main.And b1 b2) = compB b1 ++ compB b2 ++ [LLM.And]
 compB (Main.Equ a1 a2) = compA a1 ++ compA a2 ++ [LLM.Equ]
@@ -137,10 +135,9 @@ bOperators = [
 
 -- Term parser for boolean expressions
 bTerm = parens bexp
-       <|> equality
+       <|> try equality
        <|> (reserved "True" >> return Main.TT)
        <|> (reserved "False" >> return Main.FF)
-       <|> liftM Bvar identifier
        <|> try comparison
        
      
@@ -213,8 +210,20 @@ testParser programCode = (stack2Str stack, state2Str state)
 
 main :: IO()
 main = do
-       print $ testParser "x := not True and 2 <= 5 = 3 == 4;"
--- Examples:
+  -- Examples:
+  print $ testParser "x := 5; x := x - 1;" 
+  print $ testParser "x := 0 - 2;" 
+  print $ testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" 
+  print $ testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;);"
+  print $ testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;"
+  print $ testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;"
+  print $ testParser "x := 44; if x <= 43 then x := 1; else (x := 33; x := x+1;); y := x*2;"
+  print $ testParser "x := 42; if x <= 43 then (x := 33; x := x+1;) else x := 1;"
+  print $ testParser "if (1 == 0+1 = 2+1 == 3) then x := 1; else x := 2;"
+  print $ testParser "if (1 == 0+1 = (2+1 == 4)) then x := 1; else x := 2;"
+  print $ testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);"
+  print $ testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);"
+
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
 -- testParser "x := 0 - 2;" == ("","x=-2")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
