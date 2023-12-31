@@ -199,7 +199,7 @@ stmWhile = do
 -- Parse a string into a list of statements
 parseString :: String -> [Stm]
 parseString str =
-    case parse (stms <* eof) "" str of
+    case parse (spaces *> stms <* eof) "" str of
         Left e  -> error $ show e
         Right r -> r
 
