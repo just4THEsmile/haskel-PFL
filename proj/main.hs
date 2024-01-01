@@ -148,7 +148,7 @@ stms = Parsec.many stm
 
 -- Statement parser
 stm :: Parser Stm
-stm = Parsec.try stmA Parsec.<|> Parsec.try stmB Parsec.<|> Parsec.try stmIf Parsec.<|> Parsec.try stmWhile
+stm = Parsec.try stmA Parsec.<|> Parsec.try stmIf Parsec.<|> Parsec.try stmWhile
 
 -- Statement parser for arithmetic expressions
 stmA :: Parser Stm
