@@ -6,7 +6,7 @@
 <h1 align="center">Low-level Machine and Small Imperative Programming Language</h1>
 <h2 align="center">Haskell Project</h2>
 
-<br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br>
 
 <h3 align="center">Programação Funcional e em Lógica
  T05_G07</h3>
