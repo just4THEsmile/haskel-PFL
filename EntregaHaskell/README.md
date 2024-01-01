@@ -22,6 +22,7 @@
 <br><br><br><br>
 
 ## Índice
+- __Problem Description__
 - __Low Level Machine__
     - Stack
     - State
@@ -32,6 +33,11 @@
     - Aexp, Bexp, Stm
     - Compiler 
     - Parser
+- __Conclusion__
+
+## Problem Description
+
+This assignment revolves around creating a small imperative programming language and building an interpreter and compiler for it. The language includes arithmetic and boolean expressions, assignments, sequence of statements, if-else constructs, and while loops. We were asked to define data structures in Haskell to represent expressions and statements in this language, implement functions to compile programs written in this language into a list of machine instructions, and develop a parser to transform programs written in this language into our corresponding representation in the defined data structures.
 
 ## Low Level Machine
 
@@ -515,3 +521,16 @@ parse str =
 5. **stms, stm, stmA, stmIf, stmWhile**: These define the parser for statements. The stms function parses a list of statements. The stm function parses a single statement, which can be an assignment, an if statement, or a while loop. The stmA function parses an assignment statement. The stmIf function parses an if statement. The stmWhile function parses a while loop.
 
 6. **parse**: This is the main function that takes a string as input and returns a list of statements. It does this by using the Parsec library to parse the string using the stms parser, and it expects the string to start and end with whitespace.
+
+## Conclusion
+
+Throughout this project, we've built a simple interpreter for a custom programming language using Haskell. The language supports arithmetic and boolean expressions, variable assignments, if-else statements, and while loops.
+
+We've implemented a parser using the Parsec library, which converts a string of code into a list of statements. The parser handles the lexical structure of the language, including identifiers, reserved keywords, operators, and whitespace. It also handles the syntax of the language, including the precedence and associativity of operators and the structure of expressions and statements.
+
+We've also implemented a stack and a state to manage the execution of the code. The stack holds temporary values during the execution, and the state holds the values of variables. We've implemented functions to manipulate the stack and state, including pushing and popping values on the stack, and adding, updating, and looking up variables in the state.
+
+Finally, we've implemented a run function that executes the code. It uses a recursive loop to execute each statement in the code, updating the stack and state as necessary.
+
+Overall, this project demonstrates the power and flexibility of Haskell for implementing interpreters. It shows how Haskell's features, such as pattern matching, recursion, and higher-order functions, can be used to implement complex functionality with relatively simple and elegant code.
+
