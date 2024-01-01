@@ -1,5 +1,5 @@
 -- Part 2
-import Text.Parsec
+import qualified Text.Parsec as Parsec
 import Text.Parsec.String (Parser)
 import Text.Parsec.Language (emptyDef)
 import Text.Parsec.Expr (buildExpressionParser)
@@ -14,15 +14,15 @@ import LowLevelMachine as LLM
 
 languageDef =
   emptyDef { 
-              Token.identStart      = letter,
-              Token.identLetter     = alphaNum,  
+              Token.identStart      = Parsec.letter,
+              Token.identLetter     = Parsec.alphaNum,  
               Token.reservedNames   = ["if", "then", "else", "while", "do", "not", "and", "True", "False"],
               Token.reservedOpNames = ["+", "-", "*", ":=", "==", "<=", "and", "not"]
            }
 
 lexer = Token.makeTokenParser languageDef
 
-identifier = try $ do
+identifier = Parsec.try $ do
     name <- Token.identifier lexer
     if any (`isInfixOf` name) (Token.reservedNames languageDef)
         then error $ "Variable name " ++ show name ++ " contains a reserved keyword!"
@@ -54,7 +54,6 @@ data Bexp = TT
 
 -- Stm: Statements
 data Stm = Assign String Aexp
-            | AssignB String Bexp
             | Seq Stm Stm
             | If Bexp [Stm] [Stm]
             | While Bexp [Stm]
@@ -81,7 +80,6 @@ compB (Main.Le a1 a2) = compA a2 ++ compA a1 ++ [LLM.Le]
 -- Compile Statements
 compStm :: Stm -> Code
 compStm (Assign x a) = compA a ++ [LLM.Store x]
-compStm (AssignB x b) = compB b ++ [LLM.Store x]
 compStm (Seq s1 s2) = compStm s1 ++ compStm s2
 compStm (If b s1 s2) = compB b ++ [LLM.Branch (compile  s1) (compile s2)]
 compStm (While b s) =  [LLM.Loop (compB b) (compile s)]
@@ -103,8 +101,8 @@ aOperators = [
 
 -- Term parser for arithmetic expressions
 aTerm = parens aexp
-     <|> liftM Var identifier
-     <|> liftM Num integer
+     Parsec.<|> liftM Var identifier
+     Parsec.<|> liftM Num integer
 
 -- Arithmetic expression parser
 aexp = buildExpressionParser aOperators aTerm
@@ -135,10 +133,10 @@ bOperators = [
 
 -- Term parser for boolean expressions
 bTerm = parens bexp
-       <|> try equality
-       <|> (reserved "True" >> return Main.TT)
-       <|> (reserved "False" >> return Main.FF)
-       <|> try comparison
+       Parsec.<|> Parsec.try equality
+       Parsec.<|> (reserved "True" >> return Main.TT)
+       Parsec.<|> (reserved "False" >> return Main.FF)
+       Parsec.<|> Parsec.try comparison
        
      
 -- Boolean expression parser
@@ -146,11 +144,11 @@ bexp = buildExpressionParser bOperators bTerm
 
 -- Parser for a list of statements
 stms :: Parser [Stm]
-stms = many stm
+stms = Parsec.many stm
 
 -- Statement parser
 stm :: Parser Stm
-stm = try stmA <|> try stmB <|> try stmIf <|> try stmWhile
+stm = Parsec.try stmA Parsec.<|> Parsec.try stmB Parsec.<|> Parsec.try stmIf Parsec.<|> Parsec.try stmWhile
 
 -- Statement parser for arithmetic expressions
 stmA :: Parser Stm
@@ -161,20 +159,11 @@ stmA = do
     semi
     return (Assign var expr)
 
--- Statement parser for boolean expressions
-stmB :: Parser Stm
-stmB = do
-    var <- identifier
-    reservedOp ":="
-    expr <- bexp
-    semi
-    return $ AssignB var expr
-
 thenstm :: Parser [Stm]
-thenstm = parens (many stm) <|> liftM return stm
+thenstm = parens (Parsec.many stm) Parsec.<|> liftM return stm
 
 elsestm :: Parser [Stm]
-elsestm = (parens (many stm) <* semi) <|> liftM return stm
+elsestm = (parens (Parsec.many stm) <* semi) Parsec.<|> liftM return stm
 
 -- Statement parser for if statements
 stmIf :: Parser Stm
@@ -197,16 +186,16 @@ stmWhile = do
     return $ While cond stm1
 
 -- Parse a string into a list of statements
-parseString :: String -> [Stm]
-parseString str =
-    case parse (spaces *> stms <* eof) "" str of
+parse :: String -> [Stm]
+parse str =
+    case Parsec.parse (Parsec.spaces *> stms <* Parsec.eof) "" str of
         Left e  -> error $ show e
         Right r -> r
 
 -- To help you test your parser
 testParser :: String -> (String, String)
 testParser programCode = (stack2Str stack, state2Str state)
-  where (_,stack,state) = run(compile (parseString programCode), createEmptyStack, createEmptyState)
+  where (_,stack,state) = run(compile (parse programCode), createEmptyStack, createEmptyState)
 
 main :: IO()
 main = do

@@ -93,7 +93,7 @@ exec (Tru:code, stack, state) = (code, push TT stack, state)
 --Fals Instruction
 exec (Fals:code, stack, state) = (code, push FF stack, state)
 
---And Instruction  //////Dont forget error
+--And Instruction
 exec (And:code, stack, state) 
   | isEmpty stack || isEmpty (pop stack) = error "Run-time error"
   | otherwise = 
