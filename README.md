@@ -11,8 +11,8 @@
 <h3 align="center">Programação Funcional e em Lógica
  T05_G07</h3>
 <h5 align="center">
-    <li>Diogo Sarmento up202109663</li>
-    <li>Rodrigo Póvoa  up202108890</li>
+    <li>Diogo Sarmento up202109663 (50%)</li>
+    <li>Rodrigo Póvoa  up202108890 (50%)</li>
 </h5>
 
 <br><br>
