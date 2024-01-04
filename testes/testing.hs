@@ -55,3 +55,30 @@ collatz n = if n > 0
 
 tripletsWithSum :: Int -> [(Int, Int, Int)]
 tripletsWithSum sum = [(a,b,c)|a<-[1..sum],b<-[a..sum],let c = sum - a - b, a^2+b^2==c^2]
+
+toRNA :: String -> Either Char String
+toRNA [] = Right ""
+toRNA (x:xs)
+  | x == 'G' = fmap ('C' :) (toRNA xs)
+  | x == 'C' = fmap ('G' :) (toRNA xs)
+  | x == 'T' = fmap ('A' :) (toRNA xs)
+  | x == 'A' = fmap ('U' :) (toRNA xs)
+  | otherwise = Left x
+
+
+sumOfMultiplesAux :: [Integer] -> Integer -> [Integer]
+sumOfMultiplesAux [] _ = []
+sumOfMultiplesAux (factor:factors) limit = if factor > 0
+                                           then [ n| n<-[1..(limit-1)], n `mod` factor == 0 ] ++ (sumOfMultiplesAux factors limit)
+                                           else (sumOfMultiplesAux factors limit)
+
+sumOfMultiples :: [Integer] -> Integer -> Integer
+sumOfMultiples [] _ = 0
+sumOfMultiples factors limit = sum(removeDups(sumOfMultiplesAux factors limit) [])
+
+removeDups :: [Integer] -> [Integer] -> [Integer]
+removeDups [] lista = reverse lista
+removeDups (x:xs) lista
+  | x `notElem` lista = removeDups xs (x:lista)
+  | otherwise = removeDups xs lista
+
